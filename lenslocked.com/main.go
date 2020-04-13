@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"github.com/julienschmidt/httprouter"
+	"github.com/gorilla/mux"
 )
 
 func handleFunc(w http.ResponseWriter, r *http.Request)  {
@@ -18,13 +18,22 @@ func handleFunc(w http.ResponseWriter, r *http.Request)  {
 	}
 }
 
-func Hello(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
+func faq(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprint(w, "<h1>FAQ</h1>")
+}
+
+func notFound(w http.ResponseWriter, r *http.Request)  {
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprint(w, "<h1>NOT FOUND</h1>")
 }
 
 func main()  {
-	router := httprouter.New()
-	router.GET("/hello/:name", Hello)
+	r := mux.NewRouter()
+	r.NotFoundHandler = http.HandlerFunc(notFound)
+	r.HandleFunc("/", handleFunc)
+	r.HandleFunc("/faq", faq)
 	//http.HandleFunc("/", handleFunc)
-	http.ListenAndServe(":3000", router)
+	http.ListenAndServe(":3000", r)
 }
