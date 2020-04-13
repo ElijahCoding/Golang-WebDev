@@ -5,10 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PingGet() gin.HandlerFunc {
+func NewsfeedPost() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, map[string]string{
-			"hello": "world",
-		})
+            "hello": "hi",
+        })
 	}
 }
