@@ -3,6 +3,7 @@ package main
 import (
 	"newsfeeder/httpd/handler"
 	"newsfeeder/platform/newsfeed"
+	"github.com/gin-gonic/gin"
 )
 
 func main()  {
