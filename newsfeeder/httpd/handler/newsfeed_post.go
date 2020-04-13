@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"newsfeeder/platform/newsfeed"
 	"net/http"
 	"github.com/gin-gonic/gin"
 )
