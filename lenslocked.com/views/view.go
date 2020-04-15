@@ -5,14 +5,13 @@ import (
 	"path/filepath"
 )
 
+var (
+	LayoutDir string = "views/layouts/"
+	TemplateExt string = ".gohtml"
+)
+
 func NewView(layout string, files ...string) *View {
-	files = append(
-		files,
-		"views/layouts/bootstrap.gohtml",
-		"views/layouts/alert.gohtml",
-		"views/layouts/navbar.gohtml",
-		"views/layouts/footer.gohtml",
-		)
+	files = append(files, layoutFiles()...)
 
 	t, err := template.ParseFiles(files...)
 	if err != nil {
@@ -30,8 +29,9 @@ type View struct {
 }
 
 func layoutFiles() []string {
-	files, err := filepath.Glob("views/layouts/*.gohtml")
+	files, err := filepath.Glob(LayoutDir + "*" + TemplateExt)
 	if err != nil {
 		panic(err)
 	}
+	return files
 }
