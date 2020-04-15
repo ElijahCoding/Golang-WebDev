@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	"gofullstack/lenslocked.com/controllers"
 	"gofullstack/lenslocked.com/views"
 	"net/http"
 )
@@ -17,11 +18,12 @@ func main()  {
 	homeView = views.NewView("bootstrap", "views/home.gohtml")
 	contactView = views.NewView("bootstrap","views/contact.gohtml")
 
-	
+	usersC := controllers.NewUsers()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", home)
 	r.HandleFunc("/contact", contact)
+	r.HandleFunc("/signup", usersC.New)
 	http.ListenAndServe(":3000", r)
 }
 
