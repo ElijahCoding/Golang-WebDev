@@ -9,7 +9,7 @@ import (
 var (
 	homeView *views.View
 	contactView *views.View
-	signupView *Views.View
+	signupView *views.View
 )
 
 func home(w http.ResponseWriter, r *http.Request)  {
@@ -24,6 +24,7 @@ func contact(w http.ResponseWriter, r *http.Request)  {
 
 func signup(w http.ResponseWriter, r *http.Request)  {
 	w.Header().Set("Content-Type", "text/html")
+	must(signupView.Render(w, nil))
 }
 
 func main()  {
