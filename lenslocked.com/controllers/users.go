@@ -23,5 +23,12 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "sign up post")
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, r.PostForm["email"])
+	fmt.Fprint(w, r.PostFormValue("email"))
+	fmt.Fprint(w, r.PostForm["password"])
+	fmt.Fprint(w, r.PostFormValue("password"))
+
 }
