@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"gofullstack/lenslocked.com/views"
 	"net/http"
 )
@@ -17,4 +18,8 @@ type Users struct {
 
 func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 	u.NewView.Render(w, nil)
+}
+
+func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "sign up post")
 }
