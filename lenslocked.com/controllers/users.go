@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/gorilla/schema"
 	"gofullstack/lenslocked.com/views"
 	"net/http"
 )
@@ -22,13 +23,19 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type SignupForm struct {
+	Email string `schema:"email"`
+	Password string `schema:"password"`
+}
+
 func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		panic(err)
 	}
-	fmt.Fprint(w, r.PostForm["email"])
-	fmt.Fprint(w, r.PostFormValue("email"))
-	fmt.Fprint(w, r.PostForm["password"])
-	fmt.Fprint(w, r.PostFormValue("password"))
-
+	dec := schema.NewDecoder()
+	var form SignupForm
+	if err := dec.Decode(&form, r.PostForm); err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, form)
 }
