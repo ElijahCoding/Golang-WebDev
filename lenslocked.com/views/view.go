@@ -8,6 +8,7 @@ import (
 
 var (
 	LayoutDir string = "views/layouts/"
+	TemplateDir string = "views/"
 	TemplateExt string = ".gohtml"
 )
 
@@ -46,4 +47,8 @@ func layoutFiles() []string {
 		panic(err)
 	}
 	return files
+}
+
+func addTemplatePath(files []string)  {
+	
 }
