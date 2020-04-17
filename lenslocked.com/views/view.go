@@ -13,6 +13,8 @@ var (
 )
 
 func NewView(layout string, files ...string) *View {
+	addTemplatePath(files)
+	addTemplateExt(files)
 	files = append(files, layoutFiles()...)
 
 	t, err := template.ParseFiles(files...)
@@ -50,5 +52,13 @@ func layoutFiles() []string {
 }
 
 func addTemplatePath(files []string)  {
-	
+	for i, f := range files {
+		files[i] = TemplateDir + f
+	}
+}
+
+func addTemplateExt(files []string)  {
+	for i, f := range files {
+		files[i] = f + TemplateExt
+	}
 }
