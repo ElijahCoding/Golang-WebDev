@@ -22,10 +22,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = db.Ping()
+
+	defer db.Close()
+
+	_, err = db.Exec(`INSERT INTO users(name, email) VALUES($1, $2)`, "test", "test two")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("connected !")
-	db.Close()
 }
