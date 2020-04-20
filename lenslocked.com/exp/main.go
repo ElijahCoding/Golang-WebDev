@@ -1,9 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 const (
@@ -18,17 +18,13 @@ func main() {
 	psqlInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	db, err := sql.Open("postgres", psqlInfo)
+	db, err := gorm.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
 	}
 
 	defer db.Close()
-
-	var id int
-
-	err = db.QueryRow(`INSERT INTO users(name, email) VALUES($1, $2) RETURNING ID`, "test", "test two")
-	if err != nil {
+	if err := db.DB().Ping(); err != {
 		panic(err)
 	}
 }
