@@ -25,7 +25,9 @@ func main() {
 
 	defer db.Close()
 
-	_, err = db.Exec(`INSERT INTO users(name, email) VALUES($1, $2)`, "test", "test two")
+	var id int
+
+	err = db.QueryRow(`INSERT INTO users(name, email) VALUES($1, $2) RETURNING ID`, "test", "test two")
 	if err != nil {
 		panic(err)
 	}
