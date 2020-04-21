@@ -21,6 +21,14 @@ type User struct {
 	gorm.Model
 	Name string
 	Email string `gorm:"not null;unique_index"`
+	Orders []Order
+}
+
+type Order struct {
+	gorm.Model
+	UserID uint
+	Amount int
+	Description string
 }
 
 func main() {
@@ -38,10 +46,13 @@ func main() {
 	}
 
 	db.LogMode(true)
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&User{}, &Order{})
 
 	var u User
-	db.First(&u)
+	db = db.Where("email = ?", "bla@bla.com").First(&u)
+	if db.Error != nil {
+		panic(db.Error)
+	}
 	fmt.Println(u)
 }
 
