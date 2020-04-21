@@ -40,12 +40,8 @@ func main() {
 	db.LogMode(true)
 	db.AutoMigrate(&User{})
 
-	name, email := getInfo()
-	u := User{
-		Name: name,
-		Email: email,
-	}
-	db.Create(&u)
+	var u User
+	db.First(&u)
 	fmt.Println(u)
 }
 
