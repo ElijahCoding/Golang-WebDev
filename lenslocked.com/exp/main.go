@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"os"
-	"strings"
+	"gofullstack/lenslocked.com/models"
 )
 
 const (
@@ -35,34 +33,14 @@ func main() {
 	psqlInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	db, err := gorm.Open("postgres", psqlInfo)
+
+	us, err := models.NewUserService(psqlInfo)
 	if err != nil {
 		panic(err)
 	}
 
-	defer db.Close()
-	if err := db.DB().Ping(); err != nil {
-		panic(err)
-	}
-
-	db.LogMode(true)
-	db.AutoMigrate(&User{}, &Order{})
-
-	var u User
-	db = db.Where("email = ?", "bla@bla.com").First(&u)
-	if db.Error != nil {
-		panic(db.Error)
-	}
-	fmt.Println(u)
-}
-
-func getInfo() (name, email string) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("what is your name?")
-	name, _ = reader.ReadString('\n')
-	fmt.Println("what is your email adddress?")
-	email, _ = reader.ReadString('\n')
-	name = strings.TrimSpace(name)
-	email = strings.TrimSpace(email)
-	return name, email
+	defer us.Close()
+	//us.DestructiveReset()
+	user, err := us.ByID(1)
+	fmt.Println(user)
 }

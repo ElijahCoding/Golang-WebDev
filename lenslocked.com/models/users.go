@@ -15,6 +15,7 @@ func NewUserService(connectionInfo string) (*UserService, error) {
 	if err != nil {
 		return nil, err
 	}
+	db.LogMode(true)
 	return &UserService{
 		db: db,
 	}, nil
@@ -38,7 +39,12 @@ func (us *UserService) ByID(id uint) (*User, error) {
 }
 
 func (us *UserService) Close() error {
+	return us.db.Close()
+}
 
+func (us *UserService) DestructiveReset() {
+	us.db.DropTableIfExists(&User{})
+	us.db.AutoMigrate(&User{})
 }
 
 type User struct {
