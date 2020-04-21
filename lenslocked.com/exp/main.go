@@ -17,7 +17,7 @@ const (
 type User struct {
 	gorm.Model
 	Name string
-	Email string
+	Email string `gorm:"not null;unique_index"`
 }
 
 func main() {
@@ -34,5 +34,6 @@ func main() {
 		panic(err)
 	}
 
+	db.DropTableIfExists(&User{})
 	db.AutoMigrate(&User{})
 }
