@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"os"
+	"strings"
 )
 
 const (
@@ -34,6 +37,19 @@ func main() {
 		panic(err)
 	}
 
-	db.DropTableIfExists(&User{})
+	db.LogMode(true)
 	db.AutoMigrate(&User{})
+
+	name, email := getInfo()
+}
+
+func getInfo() (name, email string) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("what is your name?")
+	name, _ = reader.ReadString('\n')
+	fmt.Println("what is your email adddress?")
+	email, _ = reader.ReadString('\n')
+	name = strings.TrimSpace(name)
+	email = strings.TrimSpace(email)
+	return name, email
 }
