@@ -41,6 +41,12 @@ func main() {
 	db.AutoMigrate(&User{})
 
 	name, email := getInfo()
+	u := User{
+		Name: name,
+		Email: email,
+	}
+	db.Create(&u)
+	fmt.Println(u)
 }
 
 func getInfo() (name, email string) {
