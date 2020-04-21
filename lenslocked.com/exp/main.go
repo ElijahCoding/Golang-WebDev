@@ -14,6 +14,12 @@ const (
 	dbname = "lenslocked.com"
 )
 
+type User struct {
+	gorm.Model
+	Name string
+	Email string
+}
+
 func main() {
 	psqlInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -24,7 +30,9 @@ func main() {
 	}
 
 	defer db.Close()
-	if err := db.DB().Ping(); err != {
+	if err := db.DB().Ping(); err != nil {
 		panic(err)
 	}
+
+	db.AutoMigrate(&User{})
 }
