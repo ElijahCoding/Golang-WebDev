@@ -22,9 +22,7 @@ func main()  {
 		host, port, user, password, dbname)
 
 	us, err := models.NewUserService(psqlInfo)
-	if err != nil {
-		panic(err)
-	}
+	must(err)
 	defer us.Close()
 	us.AutoMigrate()
 
