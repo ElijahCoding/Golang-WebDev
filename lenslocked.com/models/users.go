@@ -38,6 +38,19 @@ func (us *UserService) ByID(id uint) (*User, error) {
 	}
 }
 
+func (us *UserService) ByEmail(email string) (*User, error) {
+	var user User
+	err := us.db.Where("email = ?", email).First(&user).Error
+	switch err {
+	case nil:
+		return &user, nil
+	case gorm.ErrRecordNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
 func (us *UserService) Close() error {
 	return us.db.Close()
 }
