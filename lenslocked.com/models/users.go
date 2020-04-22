@@ -40,7 +40,7 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 	return &user, err
 }
 
-func first(db *gorm.DB, c interface{}) error {
+func first(db *gorm.DB, dst interface{}) error {
 	err := db.First(dst).Error
 	if err == gorm.ErrRecordNotFound {
 		return ErrNotFound
