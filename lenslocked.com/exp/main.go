@@ -48,6 +48,10 @@ func main() {
 	if err := us.Create(&user); err != nil {
 		panic(err)
 	}
+	user.Email = "another@gmail.com"
+	if err := us.Update(&user); err != nil {
+		panic(err)
+	}
 	//user, err := us.ByID(1)
 	fmt.Println(user)
 }

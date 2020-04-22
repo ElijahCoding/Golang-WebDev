@@ -46,6 +46,10 @@ func (us *UserService) Create(user *User) error {
 	return us.db.Create(user).Error
 }
 
+func (us *UserService) Update(user *User) error {
+	return us.db.Save(user).Error
+}
+
 func (us *UserService) DestructiveReset() {
 	us.db.DropTableIfExists(&User{})
 	us.db.AutoMigrate(&User{})
