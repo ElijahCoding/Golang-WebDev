@@ -61,11 +61,18 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "Invalid email address.")
 		case models.ErrInvalidPassword:
 			fmt.Fprint(w, "Invalid password provided.")
-		case nil:
-			fmt.Fprintln(w, user)
 		default:
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		if err != nil {
+			return
+		}
+
+		cookie := http.Cookie{
+			Name: "email",
+			Value: user.Email,
+		}
+		http.SetCookie(w, &cookie)
 	}
 	fmt.Fprintln(w, form)
 }
