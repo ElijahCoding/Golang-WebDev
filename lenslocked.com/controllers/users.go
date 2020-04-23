@@ -10,19 +10,15 @@ import (
 func NewUsers(us *models.UserService) *Users {
 	return &Users{
 		NewView: views.NewView("bootstrap", "users/new"),
+		LoginView: views.NewView("bootstrap", "users/login"),
 		us: us,
 	}
 }
 
 type Users struct {
 	NewView *views.View
+	LoginView *views.View
 	us *models.UserService
-}
-
-func (u *Users) New(w http.ResponseWriter, r *http.Request) {
-	if err := u.NewView.Render(w, nil); err != nil {
-		panic(err)
-	}
 }
 
 type SignupForm struct {
@@ -46,4 +42,17 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprint(w, form)
+}
+
+type LoginForm struct {
+	Email string `schema:"email"`
+	Password string `schema:"password"`
+}
+
+func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
+	form := LoginForm{}
+	if err := parseForm(r, &form); err != nil {
+		panic(err)
+	}
+	fmt.Fprintln(w, form)
 }
