@@ -67,14 +67,14 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
-
-		cookie := http.Cookie{
-			Name: "email",
-			Value: user.Email,
-		}
-		http.SetCookie(w, &cookie)
 	}
-	fmt.Fprintln(w, form)
+
+	cookie := http.Cookie{
+		Name: "email",
+		Value: user.Email,
+	}
+	http.SetCookie(w, &cookie)
+	fmt.Fprintln(w, user)
 }
 
 func (u *Users) CookieTest(w http.ResponseWriter, r *http.Request) {
