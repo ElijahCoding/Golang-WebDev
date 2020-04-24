@@ -5,6 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"gofullstack/lenslocked.com/hash"
+	"gofullstack/lenslocked.com/rand"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -96,9 +97,15 @@ func (us *UserService) Create(user *User) error {
 	}
 	user.PasswordHash = string(hashedBytes)
 	user.Password = ""
-	if user.Remember != "" {
-		user.RememberHash = us.hmac.Hash(user.Remember)
+	if user.Remember == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = token
 	}
+	user.RememberHash = us.hmac.Hash(user.Remember)
+
 	return us.db.Create(user).Error
 }
 
