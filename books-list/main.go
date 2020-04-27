@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	"log"
+	"net/http"
 )
 
 type Book struct {
@@ -15,5 +17,27 @@ var book []Book
 
 func main()  {
 	router := mux.NewRouter()
-	
+
+	router.HandleFunc("/books", getBooks).Methods("GET")
+	router.HandleFunc("/books/{id}", getBook).Methods("GET")
+	router.HandleFunc("/books", addBook).Methods("POST")
+	router.HandleFunc("/books", updateBook).Methods("PUT")
+	router.HandleFunc("/books/{id}", removeBook).Methods("DELETE")
+
+	log.Fatal(http.ListenAndServe(":8000", router))
+}
+
+func getBooks(w http.ResponseWriter, r *http.Request) {
+}
+
+func getBook(w http.ResponseWriter, r *http.Request) {
+}
+
+func addBook(w http.ResponseWriter, r *http.Request) {
+}
+
+func updateBook(w http.ResponseWriter, r *http.Request) {
+}
+
+func removeBook(w http.ResponseWriter, r *http.Request) {
 }
