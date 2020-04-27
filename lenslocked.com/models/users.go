@@ -1,186 +1,109 @@
 package models
 
 import (
-	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"gofullstack/lenslocked.com/hash"
-	"gofullstack/lenslocked.com/rand"
-	"golang.org/x/crypto/bcrypt"
 )
+// We will get these out of our code later.
+// var userPwPepper = "secret-random-string"
+var hmac = hash.NewHMAC("secret-hmac-key")
+var bcrypt = hash.NewBCrypt("secret-random-string")
 
-var (
-	ErrNotFound = errors.New("models: resource not found.")
-	ErrInvalidID = errors.New("models: ID provided was invalid.")
-	ErrInvalidPassword = errors.New("models: incorrect password provided.")
-)
+type User struct {
+	gorm.Model
+	Name          string
+	Email         string `gorm:"not null;unique_index"`
+	Password      string `gorm:"-"`
+	PasswordHash  string `gorm:"not null"`
+	RememberToken string
+}
 
-const userPwPepper = "secret-random-string"
-const hmacSecretKey = "secret-hmac-key"
+func (u *User) SetRememberToken(token string) {
+	u.RememberToken = hmac.String(token)
+}
 
-type UserDB interface {
-	ByID(id uint) (*User, error)
-	ByEmail(email string) (*User, error)
-	ByRemember(token string) (*User, error)
-
-	Create(user *User)
+type UserService interface {
+	ByID(id uint) *User
+	ByEmail(email string) *User
+	ByRemember(token string) *User
+	Authenticate(email, password string) *User
+	Create(user *User) error
 	Update(user *User) error
 	Delete(id uint) error
-
-	Close() error
-
-	AutoMigrate() error
-	DestructiveReset() error
 }
 
-func NewUserService(connectionInfo string) (*UserService, error) {
-	ug, err := newUserGorm(connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-	return &UserService{
-		UserDB: &userValidator{
-			UserDB: ug,
-		},
-	}, nil
-}
-
-type UserService struct {
-	UserDB
-}
-
-type userValidator struct {
-	UserDB
-}
-
-func newUserGorm(connectionInfo string) (*userGorm, error) {
+func NewUserGorm(connectionInfo string) (*UserGorm, error) {
 	db, err := gorm.Open("postgres", connectionInfo)
 	if err != nil {
 		return nil, err
 	}
-	db.LogMode(true)
-	hmac := hash.NewHMAC(hmacSecretKey)
-	return &userGorm{
-		db: db,
-		hmac: hmac,
-	}, nil
+	return &UserGorm{db}, nil
 }
 
-var _ UserDB = &userGorm{}
-
-type userGorm struct {
-	db *gorm.DB
-	hmac hash.HMAC
+type UserGorm struct {
+	*gorm.DB
 }
 
-func (ug *userGorm) ByID(id uint) (*User, error) {
-	var user User
-	db := ug.db.Where("id = ?", id)
-	err := first(db, &user)
-	return &user, err
+func (ug *UserGorm) ByID(id uint) *User {
+	return ug.byQuery(ug.DB.Where("id = ?", id))
 }
 
-func (ug *userGorm) ByEmail(email string) (*User, error) {
-	var user User
-	db := ug.db.Where("email = ?", email)
-	err := first(db, &user)
-	return &user, err
+func (ug *UserGorm) ByEmail(email string) *User {
+	return ug.byQuery(ug.DB.Where("email = ?", email))
 }
 
-func (ug *userGorm) ByRemember(token string) (*User, error) {
-	var user User
-	rememberHash := ug.hmac.Hash(token)
-	err := first(ug.db.Where("remember_hash = ?", rememberHash), &user)
-	if err != nil {
-		return nil, err
+func (ug *UserGorm) ByRemember(token string) *User {
+	return ug.byQuery(
+		ug.DB.Where("remember_token = ?", hmac.String(token)))
+}
+
+func (ug *UserGorm) byQuery(query *gorm.DB) *User {
+	ret := &User{}
+	err := query.First(ret).Error
+	switch err {
+	case nil:
+		return ret
+	case gorm.ErrRecordNotFound:
+		return nil
+	default:
+		panic(err)
 	}
-	return &user, nil
 }
 
-func (us *UserService) Authenticate(email, password string) (*User, error) {
-	foundUser, err := us.ByEmail(email)
-	if err != nil {
-		return nil, err
+func (ug *UserGorm) Authenticate(email, password string) *User {
+	foundUser := ug.ByEmail(email)
+	if foundUser == nil {
+		// No user found with that email address
+		return nil
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password + userPwPepper))
-	if err != nil {
-		switch err {
-			case bcrypt.ErrMismatchedHashAndPassword:
-				return nil, ErrInvalidPassword
-		default:
-			return nil, err
-		}
+
+	if !bcrypt.Equal(foundUser.PasswordHash, password) {
+		return nil
 	}
-	return foundUser, nil
+	return foundUser
 }
 
-func first(db *gorm.DB, dst interface{}) error {
-	err := db.First(dst).Error
-	if err == gorm.ErrRecordNotFound {
-		return ErrNotFound
-	}
-	return err
-}
-
-func (ug *userGorm) Close() error {
-	return ug.db.Close()
-}
-
-func (ug *userGorm) Create(user *User) error {
-	pwBytes := []byte(user.Password + userPwPepper)
-	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	user.PasswordHash = string(hashedBytes)
+func (ug *UserGorm) Create(user *User) error {
+	user.PasswordHash = bcrypt.String(user.Password)
 	user.Password = ""
-	if user.Remember == "" {
-		token, err := rand.RememberToken()
-		if err != nil {
-			return err
-		}
-		user.Remember = token
-	}
-	user.RememberHash = ug.hmac.Hash(user.Remember)
-
-	return ug.db.Create(user).Error
+	return ug.DB.Create(user).Error
 }
 
-func (ug *userGorm) Update(user *User) error {
-	if user.Remember != "" {
-		user.RememberHash = ug.hmac.Hash(user.Remember)
-	}
-	return ug.db.Save(user).Error
+func (ug *UserGorm) Update(user *User) error {
+	return ug.DB.Save(user).Error
 }
 
-func (ug *userGorm) Delete(id uint) error {
-	if id == 0 {
-		return ErrInvalidID
-	}
-	user := User{Model: gorm.Model{ID: id}}
-	return ug.db.Delete(&user).Error
+func (ug *UserGorm) Delete(id uint) error {
+	user := &User{Model: gorm.Model{ID: id}}
+	return ug.DB.Delete(user).Error
 }
 
-func (ug *userGorm) DestructiveReset() error {
-	if err := ug.db.DropTableIfExists(&User{}).Error; err != nil {
-		return err
-	}
-	return ug.AutoMigrate()
+func (ug *UserGorm) DestructiveReset() {
+	ug.DropTableIfExists(&User{})
+	ug.AutoMigrate()
 }
 
-func (ug *userGorm) AutoMigrate() error {
-	if err := ug.db.AutoMigrate(&User{}).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-type User struct {
-	gorm.Model
-	Name string
-	Email string `gorm:"not null;unique_index"`
-	Password string `gorm:"-"`
-	PasswordHash string `gorm:"not null"`
-	Remember string `gorm:"-"`
-	RememberHash string `gorm:"not null;unique_index"`
+func (ug *UserGorm) AutoMigrate() {
+	ug.DB.AutoMigrate(&User{})
 }

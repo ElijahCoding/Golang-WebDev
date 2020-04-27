@@ -1,29 +1,25 @@
 package rand
 
 import (
-	"crypto/rand"
-	"encoding/base64"
+	"math/rand"
+	"time"
 )
 
-const RememberTokenBytes = 32
+const charset = "abcdefghijklmnopqrstuvwxyz" +
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-func Bytes(n int) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
 
-func String(nBytes int) (string, error) {
-	b, err := Bytes(nBytes)
-	if err != nil {
-		return "", err
+func StringWithCharset(length int, charset string) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
 	}
-	return base64.URLEncoding.EncodeToString(b), nil
+	return string(b)
 }
 
-func RememberToken() (string, error) {
-	return String(RememberTokenBytes)
+func String(length int) string {
+	return StringWithCharset(length, charset)
 }
