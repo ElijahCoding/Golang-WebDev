@@ -18,11 +18,20 @@ type Husky struct {
 	Speaker
 }
 
+type SpeakerPrefix struct {
+	Speaker
+}
+
+func (sp SpeakerPrefix) Speak() {
+	fmt.Print("Prefix: ")
+	sp.Speaker.Speak()
+}
+
 type Speaker interface {
 	Speak()
 }
 
 func main()  {
-	h := Husky{Cat{}}
+	h := Husky{SpeakerPrefix{Cat{}}}
 	h.Speak()
 }
