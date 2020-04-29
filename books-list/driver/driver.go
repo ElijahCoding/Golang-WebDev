@@ -20,4 +20,10 @@ func ConnectDB() *sql.DB {
 	logFatal(err)
 
 	db, err = sql.Open("postgres", pgUrl)
+	logFatal(err)
+
+	err = db.Ping()
+	logFatal(err)
+
+	return db
 }
