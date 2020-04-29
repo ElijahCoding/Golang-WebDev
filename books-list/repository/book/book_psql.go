@@ -34,3 +34,32 @@ func (b BookRepository) GetBook(db *sql.DB, book models.Book, id int) models.Boo
 
 	return book
 }
+
+func (b BookRepository) AddBook(db *sql.DB, book models.Book) int {
+	err := db.QueryRow("insert into books (title, author, year) values($1, $2, $3) RETURNING id;",
+		book.Title, book.Author, book.Year).Scan(&book.ID)
+	logFatal(err)
+	return book.ID
+}
+
+func (b BookRepository) UpdateBook(db *sql.DB, book models.Book) int64 {
+	result, err := db.Exec("update books set title=$1, author=$2, year=$3 where id=$4 RETURNING id",
+		&book.Title, &book.Author, &book.Year, &book.ID)
+
+	logFatal(err)
+
+	rowsUpdated, err := result.RowsAffected()
+	logFatal(err)
+
+	return rowsUpdated
+}
+
+func (b BookRepository) RemoveBook(db *sql.DB, id int) int64 {
+	result, err := db.Exec("delete from books where id = $1", id)
+	logFatal(err)
+
+	rowsDeleted, err := result.RowsAffected()
+	logFatal(err)
+
+	return rowsDeleted
+}
