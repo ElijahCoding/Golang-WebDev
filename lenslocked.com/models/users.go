@@ -53,9 +53,9 @@ func (ug *UserGorm) ByEmail(email string) *User {
 	return ug.byQuery(ug.DB.Where("email = ?", email))
 }
 
-func (ug *UserGorm) ByRemember(token string) *User {
+func (ug *UserGorm) ByRemember(hashedToken string) *User {
 	return ug.byQuery(
-		ug.DB.Where("remember_token = ?", hmac.String(token)))
+		ug.DB.Where("remember_token = ?", hmac.String(hashedToken)))
 }
 
 func (ug *UserGorm) byQuery(query *gorm.DB) *User {
