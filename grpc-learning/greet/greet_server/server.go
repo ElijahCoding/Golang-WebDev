@@ -12,6 +12,7 @@ import (
 type server struct {}
 
 func (*server) Greet(ctx context.Context, req *greetpd.GreetRequest) (*greetpd.GreetResponse, error) {
+	fmt.Println("Greet function was invoked with %v", req)
 	firstName := req.GetGreeting().GetFirstName()
 	result := "Hello " + firstName
 	res := &greetpd.GreetResponse{

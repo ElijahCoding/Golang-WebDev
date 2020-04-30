@@ -17,6 +17,6 @@ func main()  {
 
 	defer cc.Close()
 
-	greetpd.NewGreetServiceClient(cc)
+	c := greetpd.NewGreetServiceClient(cc)
 	fmt.Println("Created client")
 }
