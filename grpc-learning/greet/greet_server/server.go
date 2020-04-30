@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"gofullstack/grpc-learning/greet/greetpd"
 	"google.golang.org/grpc"
@@ -9,6 +10,15 @@ import (
 )
 
 type server struct {}
+
+func (*server) Greet(ctx context.Context, req *greetpd.GreetRequest) (*greetpd.GreetResponse, error) {
+	firstName := req.GetGreeting().GetFirstName()
+	result := "Hello " + firstName
+	res := &greetpd.GreetResponse{
+		Result: result,
+	}
+	return res, nil
+}
 
 func main()  {
 	fmt.Println("working")
