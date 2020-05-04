@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type Color int
 
 const (
@@ -44,4 +46,9 @@ func main()  {
 	house := Product{"House", blue, large}
 
 	products := []Product{apple, tree, house}
+	fmt.Printf("Green products")
+	f := Filter{}
+	for _, v := range f.FilterByColor(products, green) {
+		fmt.Printf(" - %s is green\n", v.name)
+	}
 }
