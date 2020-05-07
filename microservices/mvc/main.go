@@ -1,5 +1,7 @@
 package main
 
-func StartApp()  {
-	
+import "gofullstack/microservices/mvc/app"
+
+func main()  {
+	app.StartApp()
 }
