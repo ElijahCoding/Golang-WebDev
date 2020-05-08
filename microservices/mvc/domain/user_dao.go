@@ -11,8 +11,16 @@ var (
 		123: {Id: 123, FirstName: "Fede", LastName: "Leon", Email: "myemail@gmail.com"},
 	}
 
-	UserDao userDao
+	UserDao userDaoInterface
 )
+
+func init() {
+	UserDao = &userDao{}
+}
+
+type userDaoInterface interface {
+	GetUser(int64) (*User, *utils.ApplicationError)
+}
 
 type userDao struct {}
 
