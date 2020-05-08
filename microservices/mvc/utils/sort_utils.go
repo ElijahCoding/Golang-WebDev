@@ -1,5 +1,7 @@
 package utils
 
+import "sort"
+
 func BubbleSort(elements []int) []int {
 	keepRunning := true
 	for keepRunning {
@@ -13,4 +15,12 @@ func BubbleSort(elements []int) []int {
 		}
 	}
 	return elements
+}
+
+func Sort(els []int) {
+	if len(els) < 1000 {
+		BubbleSort(els)
+		return
+	}
+	sort.Ints(els)
 }
