@@ -10,9 +10,13 @@ var (
 	users = map[int64]*User{
 		123: {Id: 123, FirstName: "Fede", LastName: "Leon", Email: "myemail@gmail.com"},
 	}
+
+	UserDao userDao
 )
 
-func GetUser(userId int64) (*User, *utils.ApplicationError) {
+type userDao struct {}
+
+func (*userDao) GetUser(userId int64) (*User, *utils.ApplicationError) {
 	if user := users[userId]; user != nil {
 		return user, nil
 	}

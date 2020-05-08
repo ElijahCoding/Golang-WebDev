@@ -6,11 +6,15 @@ import (
 	"net/http"
 )
 
-type itemService struct {
+type itemsService struct {
 	
 }
 
-func (*itemService) GetItem(itemId string) (*domain.Item, *utils.ApplicationError) {
+var (
+	ItemsService itemsService
+)
+
+func (*itemsService) GetItem(itemId string) (*domain.Item, *utils.ApplicationError) {
 	return nil, &utils.ApplicationError{
 		Message:    "implement me",
 		StatusCode: http.StatusInternalServerError,
