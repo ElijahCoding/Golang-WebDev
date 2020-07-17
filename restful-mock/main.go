@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	"github.com/gorilla/mux"
+	"net/http"
 )
 
 var authors []Author = []Author{
@@ -31,11 +31,17 @@ var articles []Article = []Article{
 	},
 }
 
-func main() {
-	fmt.Println("starting")
-	fmt.Println(authors)
-	//fmt.Println(articles)
+func RootEndpoint(response http.ResponseWriter, request *http.Request)  {
+	response.Header().Add("content-type", "application/json")
+	response.Write([]byte(`{ "message": "testing" }`))
+}
 
-	data, _ := json.Marshal(authors)
-	print(string(data))
+func main() {
+	router := mux.NewRouter()
+	router.HandleFunc("/", RootEndpoint).Methods("GET")
+	router.HandleFunc("/authors", AuthorRetrieveAllEnpoint).Methods("GET")
+	router.HandleFunc("/author/{id}", AuthorRetrieveEndpoint).Methods("GET")
+	router.HandleFunc("/author/{id}", AuthorDeleteEndpoint).Methods("DELETE")
+	router.HandleFunc("/author/{id}", AuthorUpdateEndpoint).Methods("PATCH")
+	http.ListenAndServe(":8080", router)
 }
