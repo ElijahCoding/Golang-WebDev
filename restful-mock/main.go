@@ -38,6 +38,10 @@ func RootEndpoint(response http.ResponseWriter, request *http.Request)  {
 
 func main() {
 	router := mux.NewRouter()
+	router.HandleFunc("/register", RegisterEndpoint).Methods("POST")
+	router.HandleFunc("/login", LoginEndpoint).Methods("POST")
+
+
 	router.HandleFunc("/", RootEndpoint).Methods("GET")
 	router.HandleFunc("/authors", AuthorRetrieveAllEnpoint).Methods("GET")
 	router.HandleFunc("/author/{id}", AuthorRetrieveEndpoint).Methods("GET")
