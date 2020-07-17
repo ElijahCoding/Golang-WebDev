@@ -43,5 +43,12 @@ func main() {
 	router.HandleFunc("/author/{id}", AuthorRetrieveEndpoint).Methods("GET")
 	router.HandleFunc("/author/{id}", AuthorDeleteEndpoint).Methods("DELETE")
 	router.HandleFunc("/author/{id}", AuthorUpdateEndpoint).Methods("PATCH")
+
+	router.HandleFunc("/articles", ArticleRetrieveAllEndpoint).Methods("GET")
+	router.HandleFunc("/article/{id}", ArticleRetrieveEndpoint).Methods("GET")
+	router.HandleFunc("/article/{id}", ArticleDeleteEndpoint).Methods("DELETE")
+	router.HandleFunc("/article/{id}", ArticleUpdateEndpoint).Methods("PUT")
+	router.HandleFunc("/article", ArticleCreateEndpoint).Methods("POST")
+
 	http.ListenAndServe(":8080", router)
 }
