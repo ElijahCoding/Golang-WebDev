@@ -100,7 +100,7 @@ func AuthorUpdateEndpoint(response http.ResponseWriter, request *http.Request) {
 	err := validate.StructExcept(changes, "Firstname", "Lastname", "Username", "Password")
 	if err != nil {
 		response.WriteHeader(500)
-		response.Write([]byte(`{ "message": "invalid password" }`))
+		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
 		return
 	}
 	for index, author := range authors {
@@ -118,7 +118,7 @@ func AuthorUpdateEndpoint(response http.ResponseWriter, request *http.Request) {
 				err = validate.Var(changes.Password, "gte=4")
 				if err != nil {
 					response.WriteHeader(500)
-					response.Write([]byte(`{ "message": "invalid password" }`))
+					response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
 					return
 				}
 				hash, _ := bcrypt.GenerateFromPassword([]byte(changes.Password), 10)
