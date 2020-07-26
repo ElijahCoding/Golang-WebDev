@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/go-playground/validator"
-	"github.com/gorilla/mux"
-	uuid "github.com/satori/go.uuid"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+
+	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/go-playground/validator.v9"
+
+	"github.com/gorilla/mux"
+	uuid "github.com/satori/go.uuid"
 )
 
 type Author struct {
@@ -56,24 +59,23 @@ func LoginEndpoint(response http.ResponseWriter, request *http.Request) {
 				response.Write([]byte(`{ "message": "invalid password" }`))
 				return
 			}
-			claims := CustomJWTClain{
+			claims := CustomJWTClaim{
 				Id: author.Id,
 				StandardClaims: jwt.StandardClaims{
 					ExpiresAt: time.Now().Local().Add(time.Hour).Unix(),
-					Issuer: "some developer",
+					Issuer:    "The Polyglot Developer",
 				},
 			}
-			token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-			tokenString, _ := token.SignedString([]byte("some developer"))
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+			tokenString, _ := token.SignedString(JWT_SECRET)
 			response.Write([]byte(`{ "token": "` + tokenString + `" }`))
-			//json.NewEncoder(response).Encode(author)
 			return
 		}
 	}
-	response.Write([]byte(`{ "message": "invalid username." }`))
+	response.Write([]byte(`{ "message": "invalid username" }`))
 }
 
-func AuthorRetrieveAllEnpoint(response http.ResponseWriter, request *http.Request) {
+func AuthorRetrieveAllEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 	json.NewEncoder(response).Encode(authors)
 }

@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/go-playground/validator"
-	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type Article struct {
@@ -32,11 +34,30 @@ func ArticleRetrieveEndpoint(response http.ResponseWriter, request *http.Request
 	json.NewEncoder(response).Encode(Article{})
 }
 
+func ArticleCreateEndpoint(response http.ResponseWriter, request *http.Request) {
+	response.Header().Add("content-type", "application/json")
+	var article Article
+	json.NewDecoder(request.Body).Decode(&article)
+	token := context.Get(request, "decoded").(CustomJWTClaim)
+	validate := validator.New()
+	err := validate.Struct(article)
+	if err != nil {
+		response.WriteHeader(500)
+		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		return
+	}
+	article.Id = uuid.Must(uuid.NewV4()).String()
+	article.Author = token.Id
+	articles = append(articles, article)
+	json.NewEncoder(response).Encode(articles)
+}
+
 func ArticleDeleteEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 	params := mux.Vars(request)
+	token := context.Get(request, "decoded").(CustomJWTClaim)
 	for index, article := range articles {
-		if article.Id == params["id"] {
+		if article.Id == params["id"] && article.Author == token.Id {
 			articles = append(articles[:index], articles[index+1:]...)
 			json.NewEncoder(response).Encode(articles)
 			return
@@ -50,9 +71,9 @@ func ArticleUpdateEndpoint(response http.ResponseWriter, request *http.Request) 
 	params := mux.Vars(request)
 	var changes Article
 	json.NewDecoder(request.Body).Decode(&changes)
-
+	token := context.Get(request, "decoded").(CustomJWTClaim)
 	for index, article := range articles {
-		if article.Id == params["id"] {
+		if article.Id == params["id"] && article.Author == token.Id {
 			if changes.Title != "" {
 				article.Title = changes.Title
 			}
@@ -65,29 +86,4 @@ func ArticleUpdateEndpoint(response http.ResponseWriter, request *http.Request) 
 		}
 	}
 	json.NewEncoder(response).Encode(Article{})
-}
-
-func ArticleCreateEndpoint(response http.ResponseWriter, request *http.Request)  {
-	response.Header().Add("content-type", "application/json")
-	var article Article
-	json.NewDecoder(request.Body).Decode(&article)
-	tokenString := request.URL.Query().Get("token")
-	token, err := ValidateJWT(tokenString)
-	if err != nil {
-		response.WriteHeader(500)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
-		return
-	}
-
-	validate := validator.New()
-	err = validate.Struct(article)
-	if err != nil {
-		response.WriteHeader(500)
-		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
-		return
-	}
-	article.Id = uuid.Must(uuid.NewV4()).String()
-	article.Author = token.Id
-	articles = append(articles, article)
-	json.NewEncoder(response).Encode(articles)
 }

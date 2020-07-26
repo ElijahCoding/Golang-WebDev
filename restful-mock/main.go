@@ -3,12 +3,16 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/mux"
 	"net/http"
+	"strings"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/mitchellh/mapstructure"
 )
 
-type CustomJWTClain struct {
+type CustomJWTClaim struct {
 	Id string `json:"id"`
 	jwt.StandardClaims
 }
@@ -39,7 +43,7 @@ var articles []Article = []Article{
 	},
 }
 
-var JWT_SECRET []byte = []byte("some developer")
+var JWT_SECRET []byte = []byte("thepolyglotdeveloper")
 
 func ValidateJWT(t string) (interface{}, error) {
 	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
@@ -60,28 +64,50 @@ func ValidateJWT(t string) (interface{}, error) {
 	}
 }
 
-func RootEndpoint(response http.ResponseWriter, request *http.Request)  {
+func ValidateMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		authorizationHeader := request.Header.Get("authorization")
+		if authorizationHeader != "" {
+			bearerToken := strings.Split(authorizationHeader, " ")
+			if len(bearerToken) == 2 {
+				decoded, err := ValidateJWT(bearerToken[1])
+				if err != nil {
+					response.Header().Add("content-type", "application/json")
+					response.WriteHeader(500)
+					response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+					return
+				}
+				context.Set(request, "decoded", decoded)
+				next(response, request)
+			}
+		} else {
+			response.Header().Add("content-type", "application/json")
+			response.WriteHeader(500)
+			response.Write([]byte(`{ "message": "auth header is required" }`))
+			return
+		}
+	})
+}
+
+func RootEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
-	response.Write([]byte(`{ "message": "testing" }`))
+	response.Write([]byte(`{ "message": "Hello World" }`))
 }
 
 func main() {
+	fmt.Println("Starting the application...")
 	router := mux.NewRouter()
+	router.HandleFunc("/", RootEndpoint).Methods("GET")
 	router.HandleFunc("/register", RegisterEndpoint).Methods("POST")
 	router.HandleFunc("/login", LoginEndpoint).Methods("POST")
-
-
-	router.HandleFunc("/", RootEndpoint).Methods("GET")
-	router.HandleFunc("/authors", AuthorRetrieveAllEnpoint).Methods("GET")
+	router.HandleFunc("/authors", AuthorRetrieveAllEndpoint).Methods("GET")
 	router.HandleFunc("/author/{id}", AuthorRetrieveEndpoint).Methods("GET")
 	router.HandleFunc("/author/{id}", AuthorDeleteEndpoint).Methods("DELETE")
-	router.HandleFunc("/author/{id}", AuthorUpdateEndpoint).Methods("PATCH")
-
+	router.HandleFunc("/author/{id}", AuthorUpdateEndpoint).Methods("PUT")
 	router.HandleFunc("/articles", ArticleRetrieveAllEndpoint).Methods("GET")
 	router.HandleFunc("/article/{id}", ArticleRetrieveEndpoint).Methods("GET")
-	router.HandleFunc("/article/{id}", ArticleDeleteEndpoint).Methods("DELETE")
-	router.HandleFunc("/article/{id}", ArticleUpdateEndpoint).Methods("PUT")
-	router.HandleFunc("/article", ArticleCreateEndpoint).Methods("POST")
-
-	http.ListenAndServe(":8080", router)
+	router.HandleFunc("/article/{id}", ValidateMiddleware(ArticleDeleteEndpoint)).Methods("DELETE")
+	router.HandleFunc("/article/{id}", ValidateMiddleware(ArticleUpdateEndpoint)).Methods("PUT")
+	router.HandleFunc("/article", ValidateMiddleware(ArticleCreateEndpoint)).Methods("POST")
+	http.ListenAndServe(":12345", router)
 }
