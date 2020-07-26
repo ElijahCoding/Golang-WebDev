@@ -1,8 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"github.com/gorilla/mux"
 	"github.com/graphql-go/graphql"
+	"net/http"
 )
 
 var authors []Author = []Author{
@@ -84,5 +86,15 @@ var rootQuery *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 })
 
 func main()  {
-	fmt.Println("working")
+	router := mux.NewRouter()
+	schema, _ := graphql.NewSchema(graphql.SchemaConfig{
+		Query: rootQuery,
+	})
+	router.HandleFunc("/graphql", func(response http.ResponseWriter, request *http.Request) {
+		response.Header().Set("content-type", "application/json")
+		result := graphql.Do(graphql.Params{
+			Schema: schema,
+		})
+		json.NewEncoder(response).Encode(result)
+	})
 }
