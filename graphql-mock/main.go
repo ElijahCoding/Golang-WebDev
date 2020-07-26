@@ -37,7 +37,47 @@ var rootQuery *graphql.Object = graphql.NewObject(graphql.ObjectConfig{
 		"authors": &graphql.Field{
 			Type: graphql.NewList(authorType),
 			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-				
+				return authors, nil
+			},
+		},
+		"author": &graphql.Field{
+			Type: authorType,
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				id := params.Args["id"].(string)
+				for _, author := range authors {
+					if author.Id == id {
+						return author, nil
+					}
+				}
+				return Author{}, nil
+			},
+		},
+		"articles": &graphql.Field{
+			Type: graphql.NewList(articleType),
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				return articles, nil
+			},
+		},
+		"article": &graphql.Field{
+			Type: articleType,
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				id := params.Args["id"].(string)
+				for _, article := range articles {
+					if article.Id == id {
+						return article, nil
+					}
+				}
+				return Article{}, nil
 			},
 		},
 	},
