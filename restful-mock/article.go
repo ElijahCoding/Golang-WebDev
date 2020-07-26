@@ -71,15 +71,23 @@ func ArticleCreateEndpoint(response http.ResponseWriter, request *http.Request) 
 	response.Header().Add("content-type", "application/json")
 	var article Article
 	json.NewDecoder(request.Body).Decode(&article)
+	tokenString := request.URL.Query().Get("token")
+	token, err := ValidateJWT(tokenString)
+	if err != nil {
+		response.WriteHeader(500)
+		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		return
+	}
+
 	validate := validator.New()
-	err := validate.Struct(article)
+	err = validate.Struct(article)
 	if err != nil {
 		response.WriteHeader(500)
 		response.Write([]byte(`{ "message": "` + err.Error() + `" }`))
 		return
 	}
 	article.Id = uuid.Must(uuid.NewV4()).String()
-	article.Author = "nraboy"
+	article.Author = token.Id
 	articles = append(articles, article)
 	json.NewEncoder(response).Encode(articles)
 }
